@@ -125,18 +125,161 @@ const buyLicense = async (licenseUuid) => {
 };
 ```
 
-## Uso directo en HTML (sin bundler)
+## Uso directo en HTML (Vanilla JS - sin bundler)
+
+### Opción 1: Usando Capacitor directamente
+
+Capacitor se inyecta automáticamente cuando compilar para Android. No necesitas importar nada:
 
 ```html
-<script src="capacitor-plugin-apklis/dist/plugin.js"></script>
-<script>
-const checkLicense = async () => {
-    const result = await capacitorPluginApklis.ApklisLicense.verifyLicense({
-        packageName: 'com.tuempresa.tuapp'
-    });
-    console.log(result);
-};
-</script>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mi App</title>
+</head>
+<body>
+    <script>
+        // Esperar a que Capacitor esté listo
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Verificar si estamos en Android
+            if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform()) {
+                // Registrar el plugin
+                const ApklisLicense = Capacitor.registerPlugin('ApklisLicense');
+                
+                // Hacerlo global
+                window.ApklisLicense = ApklisLicense;
+                
+                // Verificar licencia
+                await checkLicense();
+            } else {
+                console.log('No es plataforma nativa (modo web)');
+            }
+        });
+
+        async function checkLicense() {
+            try {
+                const result = await window.ApklisLicense.verifyLicense({
+                    packageName: 'com.tuempresa.tuapp'
+                });
+                
+                if (result.paid) {
+                    console.log('Licencia activa:', result.license);
+                    console.log('Usuario:', result.username);
+                    enablePremiumFeatures();
+                } else {
+                    console.log('Sin licencia:', result.error);
+                    showPurchaseOption();
+                }
+            } catch (e) {
+                console.error('Error:', e);
+            }
+        }
+
+        async function buyLicense(licenseUuid) {
+            try {
+                const result = await window.ApklisLicense.purchaseLicense({
+                    licenseUuid: licenseUuid
+                });
+                
+                if (result.paid && result.success) {
+                    console.log('Compra exitosa!');
+                    enablePremiumFeatures();
+                } else {
+                    console.log('Error:', result.error);
+                }
+            } catch (e) {
+                console.error('Error:', e);
+            }
+        }
+
+        function enablePremiumFeatures() {
+            document.body.classList.add('is-premium');
+        }
+
+        function showPurchaseOption() {
+            // Mostrar modal de compra
+        }
+    </script>
+</body>
+</html>
+```
+
+### Opción 2: Archivo JS separado (recomendado)
+
+Crea un archivo `apklis.js`:
+
+```javascript
+// apklis.js
+let ApklisLicense = null;
+
+async function initApklis() {
+    if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform()) {
+        ApklisLicense = Capacitor.registerPlugin('ApklisLicense');
+        return true;
+    }
+    return false;
+}
+
+async function verifyLicense(packageName) {
+    if (!ApklisLicense) {
+        return { paid: false, error: 'Plugin no disponible' };
+    }
+    return await ApklisLicense.verifyLicense({ packageName });
+}
+
+async function purchaseLicense(licenseUuid) {
+    if (!ApklisLicense) {
+        return { paid: false, error: 'Plugin no disponible' };
+    }
+    return await ApklisLicense.purchaseLicense({ licenseUuid });
+}
+
+// Exportar funciones globalmente
+window.initApklis = initApklis;
+window.verifyLicense = verifyLicense;
+window.purchaseLicense = purchaseLicense;
+```
+
+Uso en tu HTML:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mi App</title>
+</head>
+<body>
+    <button onclick="onBuyClick()">Comprar Premium</button>
+    
+    <script src="apklis.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const ready = await initApklis();
+            
+            if (ready) {
+                const result = await verifyLicense('com.tuempresa.tuapp');
+                console.log('Licencia:', result);
+                
+                if (result.paid) {
+                    enablePremiumFeatures();
+                }
+            }
+        });
+
+        async function onBuyClick() {
+            const result = await purchaseLicense('UUID-DE-LICENCIA');
+            if (result.paid) {
+                alert('Premium activado!');
+                enablePremiumFeatures();
+            }
+        }
+
+        function enablePremiumFeatures() {
+            document.body.classList.add('is-premium');
+        }
+    </script>
+</body>
+</html>
 ```
 
 ## Respuesta de la API
