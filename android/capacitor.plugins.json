@@ -1,0 +1,6 @@
+[
+  {
+    "pkg": "capacitor-plugin-apklis",
+    "classpath": "com.apklis.plugin.ApklisLicensePlugin"
+  }
+]
