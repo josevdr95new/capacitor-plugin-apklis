@@ -61,14 +61,19 @@ allprojects {
 
 ### 2. Copiar la llave pública
 
-Coloca tu llave pública de Apklis en:
+Copia tu llave pública de Apklis a tu proyecto de app (NO al plugin):
+
 ```
-android/app/src/main/assets/license_private_key.pub
+tu-proyecto/android/app/src/main/assets/license_private_key.pub
 ```
 
-### 3. Añadir permisos en AndroidManifest.xml
+> El plugin incluye una llave de ejemplo en `android/src/main/assets/` solo como referencia.
 
-En `android/app/src/main/AndroidManifest.xml`, dentro de `<manifest>`:
+### 3. Añadir permisos en AndroidManifest.xml de tu app
+
+> Estas configuraciones van en el proyecto de tu app, **no en el plugin**.
+
+En `tu-proyecto/android/app/src/main/AndroidManifest.xml`, dentro de `<manifest>`:
 ```xml
 <queries>
     <package android:name="cu.uci.android.apklis" />
