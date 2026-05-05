@@ -15,13 +15,17 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install and Build Plugin
+      - name: Install and Build
         run: |
           npm install
           npm run build
+
+      - name: Package for production
+        run: |
+          npm pack
 
       - name: Upload Plugin
         uses: actions/upload-artifact@v4
         with:
           name: plugin-dist
-          path: dist/
+          path: capacitor-plugin-apklis-*.tgz
